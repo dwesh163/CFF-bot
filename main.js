@@ -9,14 +9,28 @@ const filePath = './data.json';
 
 const bot = new Telegraf(process.env.BOT_TOKEN)
 
-const adminID = prompt('Enter a Admin ID: ');
+const adminID = process.env.ADMIN_ID
+
+bot.telegram.sendMessage(adminID, "Hello you have been defined as main administrator, to validate this choice run the command /admin")
+
 let JSONObject = {}
 JSONObject[adminID] = {admin: 3}
 JSONObject[adminID]["id"] = 0
-JSONObject[adminID]["username"] = "udi"
-JSONObject[adminID]["chatID"] = "udi"
 
 fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+
+function verifyAdmin(ctx) {
+    let JSONObject = {}
+    JSONObject[adminID] = {admin: 3}
+    JSONObject[adminID]["id"] = 0
+    JSONObject[adminID]["username"] = ctx.from.username
+    JSONObject[adminID]["first_name"] = ctx.from.first_name
+    JSONObject[adminID]["last_name"] = ctx.from.last_name
+
+    fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+
+    ctx.reply("Perfect, you're now an admin.")
+}
 
 function verifyAccount(ctx) {
     if (ctx.message.from.id in JSON.parse(fs.readFileSync(filePath))){
@@ -164,9 +178,11 @@ async function telegram() {
         }
         if (verifyAccount(ctx) == 1){
             ctx.reply("Hello i'm a bot...")
-        }
-        
-                
+        }   
+    })
+
+    bot.command('admin', async (ctx) => {
+        verifyAdmin(ctx)
     })
 
     bot.launch()
