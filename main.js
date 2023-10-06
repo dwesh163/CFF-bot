@@ -20,16 +20,21 @@ JSONObject[adminID]["id"] = 0
 fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
 
 function verifyAdmin(ctx) {
-    let JSONObject = {}
-    JSONObject[adminID] = {admin: 3}
-    JSONObject[adminID]["id"] = 0
-    JSONObject[adminID]["username"] = ctx.from.username
-    JSONObject[adminID]["first_name"] = ctx.from.first_name
-    JSONObject[adminID]["last_name"] = ctx.from.last_name
+    if (ctx.from.id == adminID){
+        JSONObject = JSON.parse(fs.readFileSync(filePath))
+        JSONObject[adminID]["username"] = ctx.from.username
+        JSONObject[adminID]["first_name"] = ctx.from.first_name
+        JSONObject[adminID]["last_name"] = ctx.from.last_name
 
-    fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+        fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
 
-    ctx.reply("Perfect, you're now an admin.")
+        ctx.reply("Perfect, you're now an admin.")
+    }
+    else
+    {
+        ctx.reply("This command is not intended for you")
+    }
+   
 }
 
 function verifyAccount(ctx) {
@@ -131,7 +136,7 @@ function rejectFunction(ctx) {
     if(data[newUserID]["admin"] == -2){
 
         if(newUserID != data[newUserID]["chatID"]){
-            bot.telegram.sendMessage(data[newUserID]["chatID"],`@${data[newUserID]["username"]} I'm sorry but your access to the bot is not possible.`)
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`@${data[newUserID]["username"]} I'm sorry but your access to the bot is not possible.\n To request access again, run command /newacces`)
         }
         else{
             bot.telegram.sendMessage(data[newUserID]["chatID"],`I'm sorry but your access to the bot is not possible.`)
@@ -144,9 +149,7 @@ function rejectFunction(ctx) {
     }
     else{
         ctx.reply("you have already refused this request")
-    }
-
-    
+    }    
     
 }
 
@@ -173,6 +176,9 @@ async function telegram() {
             JSONObject[ctx.message.from.id]["chatID"] = ctx.chat.id
             JSONObject[ctx.message.from.id]["id"] = numberID
             JSONObject[ctx.message.from.id]["username"] = ctx.from.username
+            JSONObject[ctx.message.from.id]["first_name"] = ctx.from.first_name
+            JSONObject[ctx.message.from.id]["last_name"] = ctx.from.last_name
+            JSONObject[ctx.message.from.id]["time"] = ctx.message.date
             
             fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
             
