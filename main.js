@@ -1,7 +1,8 @@
 require('dotenv').config()
 
 const { Telegraf } = require('telegraf')
-const fs = require('fs')
+const fs = require('fs');
+const { Certificate } = require('crypto');
 const prompt = require('prompt-sync')();
 
 const filePath = './data.json';
@@ -11,28 +12,160 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 const adminID = prompt('Enter a Admin ID: ');
 let JSONObject = {}
 JSONObject[adminID] = {admin: 3}
+JSONObject[adminID]["id"] = 0
+JSONObject[adminID]["username"] = "udi"
+JSONObject[adminID]["chatID"] = "udi"
 
 fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
 
 function verifyAccount(ctx) {
-    let isAccount = new Boolean()
-    if (ctx.message.chat.id in JSON.parse(fs.readFileSync(filePath))){
-        isAccount = true
+    if (ctx.message.from.id in JSON.parse(fs.readFileSync(filePath))){
+        return JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["admin"]
     }
     else{
-        isAccount = false
+        return 0
+        
+    }
+    
+}
+function askPermission(ctx, data, numberID){
+
+    for (var userID in data){
+
+        if (data[userID]["admin"] == 3){
+
+            bot.telegram.sendMessage(adminID, `#${numberID} Request for authorization to access the bot\n         ${ctx.message.from.last_name} ${ctx.message.from.first_name}\n         @${ctx.message.from.username}`,
+            {
+                reply_markup: {
+                    inline_keyboard: [
+                        /* Inline buttons. 2 side-by-side */
+                        [ { text: "Accept", callback_data: "accept" }, { text: "Reject", callback_data: "reject" } ],
+        
+                    ]
+                }
+                
+            });
+        }
     }
 
-    return isAccount
+    JSONObject = JSON.parse(fs.readFileSync(filePath))
+    JSONObject[ctx.message.from.id]["admin"] = -2
+    fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+
+    bot.action('accept', (ctx) => {
+   
+        AcceptFunction(ctx);
+        
+    });
+
+    bot.action('reject', (ctx) => {
+   
+        rejectFunction(ctx);
+    });
 }
+
+
+function AcceptFunction(ctx) {
+
+    let numberID = /#(\d+)/.exec(ctx.update.callback_query.message.text)[1];
+
+    
+    data = JSON.parse(fs.readFileSync(filePath))
+    let newUserID
+
+    for(var userID in data){
+        if(data[userID]["id"] == numberID){
+            newUserID = userID
+        }
+    }
+
+    if(data[newUserID]["admin"] == -2){
+
+        if(newUserID != data[newUserID]["chatID"]){
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`@${data[newUserID]["username"]} Welcome among us, your request has been accepted `)
+        }
+        else{
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`Welcome among us, your request has been accepted`)
+        }
+    }
+    else{
+        ctx.reply("you have already refused this request")
+    }
+
+    data[newUserID]["admin"] = 1
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+}
+
+
+function rejectFunction(ctx) {
+    
+    let numberID = /#(\d+)/.exec(ctx.update.callback_query.message.text)[1];
+
+    
+    data = JSON.parse(fs.readFileSync(filePath))
+    let newUserID
+
+    for(var userID in data){
+        if(data[userID]["id"] == numberID){
+            newUserID = userID
+        }
+    }
+
+    if(data[newUserID]["admin"] == -2){
+
+        if(newUserID != data[newUserID]["chatID"]){
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`@${data[newUserID]["username"]} I'm sorry but your access to the bot is not possible.`)
+        }
+        else{
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`I'm sorry but your access to the bot is not possible.`)
+        }
+    }
+    else{
+        ctx.reply("you have already refused this request")
+    }
+
+    data[newUserID]["admin"] = -3
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+}
+
+
+
+
 
 async function telegram() {
 
+    let numberID = 1
+
     bot.command('start', async (ctx) => {
         console.log(verifyAccount(ctx))
-        if (verifyAccount(ctx)){
+
+        if(verifyAccount(ctx) == -2)
+        {
+            ctx.reply("Don't panic access has just been requested and you'll have the answer in a few hours")
+        }
+        if(verifyAccount(ctx) == -3)
+        {
+            ctx.reply("I'm sorry but your access to the bot is not possible.")
+        }
+        if(verifyAccount(ctx) == 0)
+        {   
+            ctx.reply("🤖 This bot is unfortunately not available to the general public.\n\nBut don't panic, access has just been requested and you'll have the answer in a few hours.")
+            JSONObject = JSON.parse(fs.readFileSync(filePath))
+            JSONObject[ctx.message.from.id] = {admin: -1,}
+            JSONObject[ctx.message.from.id]["chatID"] = ctx.chat.id
+            JSONObject[ctx.message.from.id]["id"] = numberID
+            JSONObject[ctx.message.from.id]["username"] = ctx.from.username
+            
+            fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+            
+            askPermission(ctx, JSON.parse(fs.readFileSync(filePath)), numberID)
+
+            numberID += 1
+        }
+        if (verifyAccount(ctx) == 1){
             ctx.reply("Hello i'm a bot...")
         }
+        
                 
     })
 
