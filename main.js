@@ -38,7 +38,6 @@ function verifyAccount(ctx) {
     }
     else{
         return 0
-        
     }
     
 }
@@ -103,10 +102,13 @@ function AcceptFunction(ctx) {
 
         data[newUserID]["admin"] = 1
         fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        ctx.reply("The reply has been sent")
     }
     else{
         ctx.reply("You have already accepted this request")
     }
+
+    
 
     
 }
@@ -137,6 +139,7 @@ function rejectFunction(ctx) {
 
         data[newUserID]["admin"] = -3
         fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        ctx.reply("The reply has been sent")
 
     }
     else{
@@ -144,11 +147,8 @@ function rejectFunction(ctx) {
     }
 
     
+    
 }
-
-
-
-
 
 async function telegram() {
 
