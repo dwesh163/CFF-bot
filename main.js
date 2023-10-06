@@ -83,7 +83,6 @@ function AcceptFunction(ctx) {
 
     let numberID = /#(\d+)/.exec(ctx.update.callback_query.message.text)[1];
 
-    
     data = JSON.parse(fs.readFileSync(filePath))
     let newUserID
 
@@ -101,13 +100,15 @@ function AcceptFunction(ctx) {
         else{
             bot.telegram.sendMessage(data[newUserID]["chatID"],`Welcome among us, your request has been accepted`)
         }
+
+        data[newUserID]["admin"] = 1
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
     }
     else{
-        ctx.reply("you have already refused this request")
+        ctx.reply("You have already accepted this request")
     }
 
-    data[newUserID]["admin"] = 1
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+    
 }
 
 
@@ -133,13 +134,16 @@ function rejectFunction(ctx) {
         else{
             bot.telegram.sendMessage(data[newUserID]["chatID"],`I'm sorry but your access to the bot is not possible.`)
         }
+
+        data[newUserID]["admin"] = -3
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+
     }
     else{
         ctx.reply("you have already refused this request")
     }
 
-    data[newUserID]["admin"] = -3
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+    
 }
 
 
