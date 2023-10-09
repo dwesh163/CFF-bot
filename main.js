@@ -46,13 +46,14 @@ function verifyAccount(ctx) {
     }
     
 }
+
 function askPermission(ctx, data, numberID){
 
     for (var userID in data){
 
         if (data[userID]["admin"] == 3){
 
-            bot.telegram.sendMessage(6026437985, `#${numberID} Request for authorization to access the bot\n         ${ctx.message.from.last_name} ${ctx.message.from.first_name}\n         @${ctx.message.from.username}`,
+            bot.telegram.sendMessage(adminID, `#${numberID} Request for authorization to access the bot\n         ${ctx.message.from.last_name} ${ctx.message.from.first_name}\n         @${ctx.message.from.username}`,
             {
                 reply_markup: {
                     inline_keyboard: [
@@ -81,7 +82,6 @@ function askPermission(ctx, data, numberID){
         rejectFunction(ctx);
     });
 }
-
 
 function AcceptFunction(ctx) {
 
@@ -114,7 +114,6 @@ function AcceptFunction(ctx) {
     }
     
 }
-
 
 function rejectFunction(ctx) {
     
