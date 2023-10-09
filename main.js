@@ -52,7 +52,7 @@ function askPermission(ctx, data, numberID){
 
         if (data[userID]["admin"] == 3){
 
-            bot.telegram.sendMessage(adminID, `#${numberID} Request for authorization to access the bot\n         ${ctx.message.from.last_name} ${ctx.message.from.first_name}\n         @${ctx.message.from.username}`,
+            bot.telegram.sendMessage(6026437985, `#${numberID} Request for authorization to access the bot\n         ${ctx.message.from.last_name} ${ctx.message.from.first_name}\n         @${ctx.message.from.username}`,
             {
                 reply_markup: {
                     inline_keyboard: [
@@ -112,9 +112,6 @@ function AcceptFunction(ctx) {
     else{
         ctx.reply("You have already accepted this request")
     }
-
-    
-
     
 }
 
@@ -136,10 +133,10 @@ function rejectFunction(ctx) {
     if(data[newUserID]["admin"] == -2){
 
         if(newUserID != data[newUserID]["chatID"]){
-            bot.telegram.sendMessage(data[newUserID]["chatID"],`@${data[newUserID]["username"]} I'm sorry but your access to the bot is not possible.\n To request access again, run command /newacces`)
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`@${data[newUserID]["username"]} I'm sorry but your access to the bot is not possible.\n\n To request access again, run command /newacces`)
         }
         else{
-            bot.telegram.sendMessage(data[newUserID]["chatID"],`I'm sorry but your access to the bot is not possible.`)
+            bot.telegram.sendMessage(data[newUserID]["chatID"],`I'm sorry but your access to the bot is not possible.\n To request access again, run command /newacces`)
         }
 
         data[newUserID]["admin"] = -3
@@ -178,7 +175,7 @@ async function telegram() {
             JSONObject[ctx.message.from.id]["username"] = ctx.from.username
             JSONObject[ctx.message.from.id]["first_name"] = ctx.from.first_name
             JSONObject[ctx.message.from.id]["last_name"] = ctx.from.last_name
-            JSONObject[ctx.message.from.id]["time"] = ctx.message.date
+            JSONObject[ctx.message.from.id]["time"] = ctx.message.date * 1000
             
             fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
             
@@ -193,6 +190,47 @@ async function telegram() {
 
     bot.command('admin', async (ctx) => {
         verifyAdmin(ctx)
+    })
+
+    bot.command('newacces', async (ctx) => {
+        if (verifyAccount(ctx) == -2){
+            ctx.reply("Wait for your reply before making a new request")
+        }
+        else{
+
+            if (verifyAccount(ctx) == 0){
+                ctx.reply("Use the /start command to request first access.")
+            }
+            else{
+
+                if(verifyAccount(ctx) == 3){
+                    ctx.reply("You are a admin you don't need to make requests")
+                    console.log(Date.now())
+                }
+                else
+                {   
+                    if(verifyAccount(ctx) == 1){
+                        ctx.reply("You're accepted, you don't need to request.")
+                        console.log(Date.now())
+                    }
+                    else{
+                        console.log(JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["time"] + 86400)
+                        console.log(Date.now())
+                        if(JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["time"] + 86400 > Date.now()){
+                            ctx.reply("please wait 1 day")
+                        }
+                        else
+                        {
+                            JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["id"] = -1
+                            fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+                            askPermission(ctx, JSON.parse(fs.readFileSync(filePath)), JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["id"])
+                            ctx.reply("Your access has just been requested and you'll have the answer in a few hours")
+                        }
+                    }
+                }
+            }
+        }
+
     })
 
     bot.launch()
