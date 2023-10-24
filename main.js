@@ -3,7 +3,11 @@ require('dotenv').config()
 const { Telegraf } = require('telegraf')
 const fs = require('fs');
 const { Certificate } = require('crypto');
+const { title } = require('process');
 const prompt = require('prompt-sync')();
+
+require('./CFF.js')();
+
 
 const filePath = './data.json';
 
@@ -11,13 +15,17 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 
 const adminID = process.env.ADMIN_ID
 
-bot.telegram.sendMessage(adminID, "Hello you have been defined as main administrator, to validate this choice run the command /admin")
+//bot.telegram.sendMessage(adminID, "Hello you have been defined as main administrator, to validate this choice run the command /admin")
 
 let JSONObject = {}
 JSONObject[adminID] = {admin: 3}
 JSONObject[adminID]["id"] = 0
+JSONObject[adminID]["mobile"] = false
+JSONObject[adminID]["size"] = 43
 
-fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
+}
 
 function verifyAdmin(ctx) {
     if (ctx.from.id == adminID){
@@ -175,6 +183,10 @@ async function telegram() {
             JSONObject[ctx.message.from.id]["first_name"] = ctx.from.first_name
             JSONObject[ctx.message.from.id]["last_name"] = ctx.from.last_name
             JSONObject[ctx.message.from.id]["time"] = ctx.message.date * 1000
+            JSONObject[ctx.message.from.id]["mobile"] = 43
+            JSONObject[ctx.message.from.id]["mobile"] = true
+            JSONObject[ctx.message.from.id]["size"] = 43
+
             
             fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
             
@@ -182,7 +194,7 @@ async function telegram() {
 
             numberID += 1
         }
-        if (verifyAccount(ctx) == 1){
+        if (verifyAccount(ctx) > 1){
             ctx.reply("Hello i'm a bot...")
         }   
     })
@@ -204,17 +216,13 @@ async function telegram() {
 
                 if(verifyAccount(ctx) == 3){
                     ctx.reply("You are a admin you don't need to make requests")
-                    console.log(Date.now())
                 }
                 else
                 {   
                     if(verifyAccount(ctx) == 1){
                         ctx.reply("You're accepted, you don't need to request.")
-                        console.log(Date.now())
                     }
                     else{
-                        console.log(JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["time"] + 86400)
-                        console.log(Date.now())
                         if(JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["time"] + 86400 > Date.now()){
                             ctx.reply("please wait 1 day")
                         }
@@ -232,7 +240,141 @@ async function telegram() {
 
     })
 
+    bot.command('admin', async (ctx) => {
+        verifyAdmin(ctx)
+    })
+    
+
+    bot.command('sethome', async (ctx) => {
+        if(verifyAccount(ctx) <= 0)
+        {
+            ctx.reply("I'm sorry, this command is for members only. Use the /start command for more information.")
+        }
+        else{
+            data = JSON.parse(fs.readFileSync(filePath))
+            data[ctx.message.from.id]["home"] = ctx.message.text.replace("/sethome ","")
+            ctx.reply(`Your home has been correctly defined for ${data[ctx.message.from.id]["home"]}`)
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        }
+    })
+
+    bot.command('setwork', async (ctx) => {
+        if(verifyAccount(ctx) <= 0)
+        {
+            ctx.reply("I'm sorry, this command is for members only. Use the /start command for more information.")
+        }
+        else{
+            data = JSON.parse(fs.readFileSync(filePath))
+            data[ctx.message.from.id]["work"] = ctx.message.text.replace("/setwork ","")
+            ctx.reply(`Your work has been correctly defined for ${data[ctx.message.from.id]["work"]}`)
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        }
+    })
+
+    bot.command('set', async (ctx) => {
+        if(verifyAccount(ctx) <= 0)
+        {
+            ctx.reply("I'm sorry, this command is for members only. Use the /start command for more information.")
+        }
+        else{
+            title = ctx.message.text.split(":")[0].replace("/set","")
+            location = ctx.message.text.split(":")[1] .replace("/set","")
+            data = JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]
+            data[title] = location
+            ctx.reply(`Your set ${title} has been correctly defined for ${data[title]}`)
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        }
+    })
+
+    bot.command('home', async (ctx) => {
+        if(verifyAccount(ctx) <= 0)
+        {
+            ctx.reply("I'm sorry, this command is for members only. Use the /start command for more information.")
+        }
+        else{
+            if ("home" in JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]){
+                if(ctx.message.text.replace("/home") == "undefined"){
+                    if("work" in JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]){
+                        from = JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["work"]
+                    }
+                    else{
+                        ctx.reply("you must define a location")
+                        return
+                    }
+                }
+                else{
+                    from = ctx.message.text.replace("/home", "")
+                }
+                textReply = await fetchAPI(from, JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["home"], false, ctx.message.from.id, filePath)
+                await bot.telegram.sendMessage(ctx.from.id, textReply, {parse_mode: 'Markdown'})
+            }
+            else{
+                ctx.reply("you need to define your work for this feature")
+            }
+        }
+    })
+
+    bot.command('work', async (ctx) => {
+        if(verifyAccount(ctx) <= 0)
+        {
+            ctx.reply("I'm sorry, this command is for members only. Use the /start command for more information.")
+        }
+        else{
+            if ("work" in JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]){
+                if(ctx.message.text.replace("/work") == "undefined"){
+                    if("home" in JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]){
+                        from = JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["home"]
+                    }
+                    else{
+                        ctx.reply("you must define a location")
+                        return
+                    }
+                }
+                else{
+                    from = ctx.message.text.replace("/work", "")
+                }
+                textReply = await fetchAPI(from, JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["work"], false, ctx.message.from.id, filePath)
+                await bot.telegram.sendMessage(ctx.from.id, textReply, {parse_mode: 'Markdown'})
+            }
+            else{
+                ctx.reply("you need to define your work for this feature")
+            }
+        }
+    })
+
+
+    bot.command('travel', async (ctx) => {
+        if(verifyAccount(ctx) <= 0)
+        {
+            ctx.reply("I'm sorry, this command is for members only. Use the /start command for more information.")
+        }
+        else{
+            from = ctx.message.text.split("-")[0].replace("/travel", "")
+            to = ctx.message.text.split("-")[1] 
+
+            console.log("from", from, "- to", to)
+    
+            textReply = await fetchAPI(from, to, false, ctx.message.from.id, filePath)
+            await bot.telegram.sendMessage(ctx.from.id, textReply, {parse_mode: 'Markdown'})
+        }
+    })
+
+    bot.command("m", async (ctx) => {
+        data = JSON.parse(fs.readFileSync(filePath))
+        data[ctx.message.from.id]["mobile"] = true
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+    }) 
+
+    bot.command("d", async (ctx) => {
+        data = JSON.parse(fs.readFileSync(filePath))
+        data[ctx.message.from.id]["mobile"] = false
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+
+    }) 
+   
     bot.launch()
+
+
 
 }
 
