@@ -16,8 +16,8 @@ module.exports = function() {
             }
 
             const responseData = await response.json();
-            fs.writeFileSync("test.json", JSON.stringify(responseData, null, 3));
-            return getSpecifiedData(JSON.parse(JSON.stringify(responseData, null, 2)), userID, filePath, 1)
+            fs.writeFileSync(`${userID}.json`, JSON.stringify(responseData, null, 3));
+            //return getSpecifiedData(JSON.parse(JSON.stringify(responseData, null, 2)), userID, filePath, 1)
             return transformData(JSON.parse(JSON.stringify(responseData, null, 2)), userID, filePath);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -29,7 +29,6 @@ module.exports = function() {
 
 function getHeader(data, size, userID, filePath, travelNumber){
     let sizeArrow = 12
-    let travel = data["connections"][travelNumber]
     let travelFrom = data["stations"]["from"][0]["name"]
     let travelTo = data["stations"]["to"][0]["name"]
     let title = `${travelFrom}  ${"-".repeat(sizeArrow)}>  ${travelTo}`
@@ -52,7 +51,8 @@ function getHeader(data, size, userID, filePath, travelNumber){
 
     text += (`${"-".repeat(size)}\n`);
     text += (`${" ".repeat(sizeSpace)} ${title}\n`)
-    if(travelNumber != "undefined"){
+    if(travelNumber != "null"){
+        let travel = data["connections"][travelNumber]
         let timeFrom = (new Date(travel["from"]["departure"]).toLocaleTimeString('fr-CH', {hour: '2-digit', minute: '2-digit'}));
         let timeTo = (new Date(travel["to"]["arrival"]).toLocaleTimeString('fr-CH', {hour: '2-digit', minute: '2-digit'}));
         text += (`   ${timeFrom} ${"-".repeat(size - 25)} ${timeTo}\n`)
@@ -64,7 +64,7 @@ function getHeader(data, size, userID, filePath, travelNumber){
 
 function transformData(data, userID, filePath) {
     let size = 96
-    let text = getHeader(data, size, userID, filePath)
+    let text = getHeader(data, size, userID, filePath, "null")
 
     for (let travelNumber = 0; travelNumber < Object.keys(data["connections"]).length; travelNumber++) {
         travel = data["connections"][travelNumber]
