@@ -317,8 +317,49 @@ async function telegram() {
   })
 
   bot.command("language", async (ctx) => {
-    
+    try{
+      replyText = textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["language"]
+
+      let userId = ctx.message.from.id
+      let buttonLanguageList = []
+
+      for (language in textResponse) {
+        buttonLanguageList.push({ text: language, callback_data: "1" })
+      
+      }
+
+      ctx.reply(replyText, {
+        reply_markup: {
+            inline_keyboard: [
+                buttonLanguageList
+                
+            ],
+        }})
+
+      bot.action("en", (ctx) => {
+        data = JSON.parse(fs.readFileSync(filePath))
+        data[userId]["language"] = "en"
+      });
+      bot.action("1", (ctx) => {
+        data = JSON.parse(fs.readFileSync(filePath))
+        data[userId]["language"] = "fr"
+      });
+      bot.action("de", (ctx) => {
+        data = JSON.parse(fs.readFileSync(filePath))
+        data[userId]["language"] = "de"
+      });
+
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["languageValidate"].replace("UIX678",JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]))
+
+    }
+    catch{
+      replyText = textResponse[process.env.LANGUAGE]["language"]
+    }
+
   })
+
 
   bot.launch();
 }

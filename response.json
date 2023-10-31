@@ -14,7 +14,9 @@
         "membersOnly": "I'm sorry, this command is for members only. Use the /start command for more information.",
         "set": "Your UIX345 has been correctly defined for UIX346",
         "setEmpty": "you must define a location",
-        "setAutoEmpty": "you need to define your UIX345 for this feature"
+        "setAutoEmpty": "you need to define your UIX345 for this feature",
+        "language": "Here is the list of all the languages available\nuse the command /language 'your language' which appears in the list below\n",
+        "languageValidate" : "your language has been changed for UIX678"
     },
     "fr" : {
         "help" : "help",
@@ -31,7 +33,9 @@
         "membersOnly" : "Je suis désolé, cette commande est réservée aux membres. Utilisez la commande /start pour plus d'informations",
         "set" : "Votre UIX345 a été correctement défini pour UIX346",
         "setEmpty" : "vous devez définir un emplacement",
-        "setAutoEmpty" : "vous devez définir votre UIX345 pour cette fonctionnalité"
+        "setAutoEmpty" : "vous devez définir votre UIX345 pour cette fonctionnalité",
+        "language" : "Voici la liste de toutes les langues disponibles Utilisez la commande /language 'votre langue' qui apparaît dans la liste ci-dessous",
+        "languageValidate" : "votre langue a été modifiée pour UIX678"
     },
     "de": {
         "help": "Hilfe",
@@ -48,7 +52,9 @@
         "membersOnly": "Es tut mir leid, dieser Befehl ist nur für Mitglieder. Verwenden Sie den Befehl /start für weitere Informationen.",
         "set": "Ihr UIX345 wurde korrekt für UIX346 definiert",
         "setEmpty": "Sie müssen einen Standort definieren",
-        "setAutoEmpty": "Sie müssen Ihren UIX345 für diese Funktion definieren"
+        "setAutoEmpty": "Sie müssen Ihren UIX345 für diese Funktion definieren",
+        "language": "Hier ist die Liste aller verfügbaren Sprachen\nutzen Sie den Befehl /language 'Ihre Sprache', der in der Liste unten erscheint\n",
+        "languageValidate" : "Ihre Sprache wurde für UIX678 geändert"
     }
     
 }
