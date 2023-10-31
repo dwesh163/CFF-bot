@@ -15,6 +15,8 @@ const filePath = process.env.FILE_PATH;
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const adminID = process.env.ADMIN_ID;
 
+const textResponse = JSON.parse(fs.readFileSync("./response.json"))
+
 //bot.telegram.sendMessage(adminID, "Hello you have been defined as main administrator, to validate this choice run the command /admin")
 
 let JSONObject = {};
@@ -22,6 +24,7 @@ JSONObject[adminID] = { admin: 3 };
 JSONObject[adminID]["id"] = 0;
 JSONObject[adminID]["mobile"] = false;
 JSONObject[adminID]["size"] = 43;
+JSONObject[adminID]["language"] = process.env.LANGUAGE 
 
 if (!fs.existsSync(filePath)) {
   fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
@@ -84,17 +87,13 @@ async function telegram() {
   bot.command("start", async (ctx) => {
 
     if (verifyAccount(ctx) == -2) {
-      ctx.reply(
-        "Don't panic access has just been requested and you'll have the answer in a few hours"
-      );
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["accesSend"]);
     }
     if (verifyAccount(ctx) == -3) {
-      ctx.reply("I'm sorry but your access to the bot is not possible.");
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["accessDenied"]);
     }
     if (verifyAccount(ctx) == 0) {
-      ctx.reply(
-        "🤖 This bot is unfortunately not available to the general public.\n\nBut don't panic, access has just been requested and you'll have the answer in a few hours."
-      );
+      ctx.reply(`${textResponse[process.env.LANGUAGE]["startVerify"]}\n\n\n${textResponse[process.env.LANGUAGE]["start"]}`);
       JSONObject = JSON.parse(fs.readFileSync(filePath));
       JSONObject[ctx.message.from.id] = { admin: -1 };
       JSONObject[ctx.message.from.id]["chatID"] = ctx.chat.id;
@@ -106,6 +105,7 @@ async function telegram() {
       JSONObject[ctx.message.from.id]["mobile"] = 43;
       JSONObject[ctx.message.from.id]["mobile"] = true;
       JSONObject[ctx.message.from.id]["size"] = 43;
+      JSONObject[ctx.message.from.id]["language"] = process.env.LANGUAGE;
 
       fs.writeFileSync(filePath, JSON.stringify(JSONObject, null, 3));
 
@@ -114,7 +114,7 @@ async function telegram() {
       numberID += 1;
     }
     if (verifyAccount(ctx) > 1) {
-      ctx.reply("Hello i'm a bot...");
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["startVerify"]);
     }
   });
 
@@ -122,18 +122,18 @@ async function telegram() {
     verifyAdmin(ctx);
   });
 
-  bot.command("newacces", async (ctx) => {
+  bot.command("newaccess", async (ctx) => {
     if (verifyAccount(ctx) == -2) {
-      ctx.reply("Wait for your reply before making a new request");
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["newAccesSend"]);
     } else {
       if (verifyAccount(ctx) == 0) {
-        ctx.reply("Use the /start command to request first access.");
+        ctx.reply(textResponse[process.env.LANGUAGE]["firstNewAccess"]);
       } else {
         if (verifyAccount(ctx) == 3) {
-          ctx.reply("You are a admin you don't need to make requests");
+          ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["adminNewAccess"]);
         } else {
           if (verifyAccount(ctx) == 1) {
-            ctx.reply("You're accepted, you don't need to request.");
+            ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["acceptNewAccess"]);
           } else {
             if (
               JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id][
@@ -142,7 +142,7 @@ async function telegram() {
                 86400 >
               Date.now()
             ) {
-              ctx.reply("please wait 1 day");
+              ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["acceptNewAccess"]);
             } else {
               JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["id"] =
                 -1;
@@ -152,9 +152,7 @@ async function telegram() {
                 JSON.parse(fs.readFileSync(filePath)),
                 JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["id"]
               );
-              ctx.reply(
-                "Your access has just been requested and you'll have the answer in a few hours"
-              );
+              ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["newAcces"]);
             }
           }
         }
@@ -168,66 +166,52 @@ async function telegram() {
 
   bot.command("sethome", async (ctx) => {
     if (verifyAccount(ctx) <= 0) {
-      ctx.reply(
-        "I'm sorry, this command is for members only. Use the /start command for more information."
-      );
+      ctx.reply(textResponse[process.env.LANGUAGE]["membersOnly"]);
+
     } else {
       data = JSON.parse(fs.readFileSync(filePath));
       data[ctx.message.from.id]["home"] = ctx.message.text.replace(
         "/sethome ",
         ""
       );
-      ctx.reply(
-        `Your home has been correctly defined for ${
-          data[ctx.message.from.id]["home"]
-        }`
-      );
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["set"].replace("UIX345", "home").replace("UIX346", data[ctx.message.from.id]["home"]));
+
       fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
     }
   });
 
   bot.command("setwork", async (ctx) => {
     if (verifyAccount(ctx) <= 0) {
-      ctx.reply(
-        "I'm sorry, this command is for members only. Use the /start command for more information."
-      );
+      ctx.reply(textResponse[process.env.LANGUAGE]["membersOnly"]);
     } else {
       data = JSON.parse(fs.readFileSync(filePath));
       data[ctx.message.from.id]["work"] = ctx.message.text.replace(
         "/setwork ",
         ""
       );
-      ctx.reply(
-        `Your work has been correctly defined for ${
-          data[ctx.message.from.id]["work"]
-        }`
-      );
+
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["set"].replace("UIX345", "work").replace("UIX346", data[ctx.message.from.id]["work"]));
       fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
     }
   });
 
   bot.command("set", async (ctx) => {
     if (verifyAccount(ctx) <= 0) {
-      ctx.reply(
-        "I'm sorry, this command is for members only. Use the /start command for more information."
-      );
+      ctx.reply(textResponse[process.env.LANGUAGE]["membersOnly"]);
     } else {
-      title = ctx.message.text.split(":")[0].replace("/set", "");
-      location = ctx.message.text.split(":")[1].replace("/set", "");
-      data = JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id];
-      data[title] = location;
-      ctx.reply(
-        `Your set ${title} has been correctly defined for ${data[title]}`
-      );
+      LocationTitle = ctx.message.text.split(":")[0].replace("/set ", "");
+      location = ctx.message.text.split(":")[1].replace("/set ", "");
+      data = JSON.parse(fs.readFileSync(filePath));
+      data[ctx.message.from.id][LocationTitle] = location;
+
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["set"].replace("UIX345", LocationTitle).replace("UIX346", data[ctx.message.from.id][LocationTitle]));
       fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
     }
   });
 
   bot.command("home", async (ctx) => {
     if (verifyAccount(ctx) <= 0) {
-      ctx.reply(
-        "I'm sorry, this command is for members only. Use the /start command for more information."
-      );
+      ctx.reply(textResponse[process.env.LANGUAGE]["membersOnly"]);
     } else {
       if (
         "home" in JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]
@@ -240,7 +224,7 @@ async function telegram() {
               "work"
             ];
           } else {
-            ctx.reply("you must define a location");
+            ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["setEmpty"]);
             return;
           }
         } else {
@@ -251,16 +235,14 @@ async function telegram() {
         await editTelegramMessage(ctx, from, "work", messageSent, ctx.message.from.id ,filePath, 0)
 
       } else {
-        ctx.reply("you need to define your work for this feature");
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["setAutoEmpty"].replace("UIX345", "home"));
       }
     }
   });
 
   bot.command("work", async (ctx) => {
     if (verifyAccount(ctx) <= 0) {
-      ctx.reply(
-        "I'm sorry, this command is for members only. Use the /start command for more information."
-      );
+      ctx.reply(textResponse[process.env.LANGUAGE]["membersOnly"]);
     } else {
       if (
         "work" in JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]
@@ -273,7 +255,7 @@ async function telegram() {
               "home"
             ];
           } else {
-            ctx.reply("you must define a location");
+            ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["setEmpty"]);
             return;
           }
         } else {
@@ -285,16 +267,14 @@ async function telegram() {
         await editTelegramMessage(ctx, from, "work", messageSent, ctx.message.from.id ,filePath, 0)
 
       } else {
-        ctx.reply("you need to define your work for this feature");
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["setAutoEmpty"].replace("UIX345", "work"));
       }
     }
   });
 
   bot.command("travel", async (ctx) => {
     if (verifyAccount(ctx) <= 0) {
-      ctx.reply(
-        "I'm sorry, this command is for members only. Use the /start command for more information."
-      );
+      ctx.reply(textResponse[process.env.LANGUAGE]["membersOnly"]);
     } else {
       from = ctx.message.text.split("-")[0].replace("/travel", "");
       to = ctx.message.text.split("-")[1];
@@ -315,6 +295,15 @@ async function telegram() {
     data[ctx.message.from.id]["mobile"] = false;
     fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
   });
+
+  bot.command("help", async (ctx) => {
+    try{
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["help"]);
+    }
+    catch{
+      ctx.reply(textResponse[process.env.LANGUAGE]["help"]);
+    }
+  })
 
   bot.launch();
 }
