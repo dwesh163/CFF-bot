@@ -2,6 +2,10 @@ const { Telegraf } = require("telegraf");
 const fs = require("fs");
 const prompt = require("prompt-sync")();
 
+const filePath = process.env.FILE_PATH;
+const bot = new Telegraf(process.env.BOT_TOKEN);
+const adminID = process.env.ADMIN_ID;
+
 module.exports = function () {
     this.verifyAdmin = function (ctx) {
     if (ctx.from.id == adminID) {
