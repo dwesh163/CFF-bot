@@ -34,7 +34,7 @@
         "setAutoEmpty" : "vous devez définir votre UIX345 pour cette fonctionnalité"
     },
     "de": {
-        "Hilfe": "Hilfe",
+        "help": "Hilfe",
         "startVerify": "Hello i'm a bot...",
         "accessSend": "Keine Panik, der Zugang wurde soeben beantragt und Sie werden die Antwort in ein paar Stunden erhalten",
         "accessDenied": "Es tut mir leid, aber Ihr Zugriff auf den Bot ist nicht möglich.",
