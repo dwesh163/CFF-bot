@@ -3,34 +3,22 @@ const fs = require('fs');
 const { title } = require("process");
 
 module.exports = function() { 
-    this.sethomeFunction = function(a, b) { 
-        return "vive les pacerette";
-    };
-    this.getMessageContent = async function(from, to, time, mobile, userID, filePath, nb) { 
-
-        let userTime = time
-        console.log(userTime)
+    this.getMessageContent = async function(from, to, time, mobile, userID, filePath, nb) {
 
         try {   
-
-
             data = await fetchAPI(from, to, "00:01")
-
             responseData = data
             end = false
-
 
             while (!end){
 
                 responseData = await fetchAPI(from, to, time)
-
-                for (let i = 0; i < 15; i++) {
+                console.log(Object.keys(responseData["connections"]).length)
+                for (let i = 0; i < Object.keys(responseData["connections"]).length; i++) {
 
                     if (new Date().toISOString().slice(0, 10) == responseData["connections"][i]["from"]["departure"].split("T")[0]){
-
                         data["connections"].push(responseData["connections"][i])
                         time = responseData["connections"][i]["from"]["departure"].split("T")[1]
-
                     }
                     else{
                         end = true
@@ -100,7 +88,7 @@ module.exports = function() {
 
 async function fetchAPI(from, to, time){
     
-    const response = await fetch(`http://transport.opendata.ch/v1/connections?from=${from}&to=${to}&time=${time}&limit=16&page=4`);
+    const response = await fetch(`http://transport.opendata.ch/v1/connections?from=${from}&to=${to}&time=${time}&limit=16`);
 
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
