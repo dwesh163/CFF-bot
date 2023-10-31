@@ -6,26 +6,111 @@ module.exports = function() {
     this.sethomeFunction = function(a, b) { 
         return "vive les pacerette";
     };
-    this.fetchAPI = async function(from, to, mobile, userID, filePath) { 
+    this.getMessageContent = async function(from, to, time, mobile, userID, filePath, nb) { 
 
-        try {
-            const response = await fetch(`http://transport.opendata.ch/v1/connections?from=${from}&to=${to}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+        let userTime = time
+        console.log(userTime)
+
+        try {   
+
+
+            data = await fetchAPI(from, to, "00:01")
+
+            responseData = data
+            end = false
+
+
+            while (!end){
+
+                responseData = await fetchAPI(from, to, time)
+
+                for (let i = 0; i < 15; i++) {
+
+                    if (new Date().toISOString().slice(0, 10) == responseData["connections"][i]["from"]["departure"].split("T")[0]){
+
+                        data["connections"].push(responseData["connections"][i])
+                        time = responseData["connections"][i]["from"]["departure"].split("T")[1]
+
+                    }
+                    else{
+                        end = true
+                    }
+                }
+
             }
+           
+            fs.writeFileSync(`${userID}.json`, JSON.stringify(data, null, 3));
+            //return getSpecifiedData(JSON.parse(JSON.stringify(responseData, null, 2)), userID, filePath, 0)
 
-            const responseData = await response.json();
-            fs.writeFileSync(`${userID}.json`, JSON.stringify(responseData, null, 3));
-            //return getSpecifiedData(JSON.parse(JSON.stringify(responseData, null, 2)), userID, filePath, 1)
-            return transformData(JSON.parse(JSON.stringify(responseData, null, 2)), userID, filePath);
         } catch (error) {
             console.error("Error fetching data:", error);
             throw error;
         }
+
+        travelData = data["connections"]
+        data["connections"] = []
+
+        let isFirst = false
+        let firstTravel = 0
+
+        for (let i = 0; i < Object.keys(travelData).length; i++) {
+
+            if (new Date() < new Date(travelData[i]["from"]["departure"]) && isFirst == false){
+                isFirst = true
+                firstTravel = i
+            }
+
+        }
+
+        let restTravel = firstTravel % 4
+        let restPage = (firstTravel - restTravel)/4
+        let newRestPage = 1
+        let prvTravelData = []
+
+        data["connections"] = {}
+        data["connections"][`${(restPage + 1) *-1}`] = []
+
+        for (let i = 0; i <= restTravel; i++) {
+            data["connections"][`${(restPage + 1) *-1}`].push(travelData[i])
+        }
+
+        data["connections"][`${((restPage + 1) *-1) + newRestPage}`] = []
+
+        for (let i = 1; i < Object.keys(travelData).length - restTravel; i++) {
+            data["connections"][`${((restPage + 1) *-1) + newRestPage}`].push(travelData[i + restTravel -1])
+            console.log(i, "--", travelData[i]["from"]["departure"])
+            if (i % 4 == 0){
+                newRestPage += 1
+                data["connections"][`${((restPage + 1) *-1) + newRestPage}`] = []
+            }
+            
+        }
+
+        fs.writeFileSync(`${userID}.json`, JSON.stringify(data, null, 3));
+
+        
+
+        return transformData(JSON.parse(JSON.stringify(data, null, 2)), userID, filePath);
+
     };
+
+
     
 };
+
+async function fetchAPI(from, to, time){
+    
+    const response = await fetch(`http://transport.opendata.ch/v1/connections?from=${from}&to=${to}&time=${time}&limit=16&page=4`);
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+
+    return responseData;
+}
+
 
 function getHeader(data, size, userID, filePath, travelNumber){
     let sizeArrow = 12
@@ -63,51 +148,73 @@ function getHeader(data, size, userID, filePath, travelNumber){
 }
 
 function transformData(data, userID, filePath) {
-    let size = 96
-    let text = getHeader(data, size, userID, filePath, "null")
 
-    for (let travelNumber = 0; travelNumber < Object.keys(data["connections"]).length; travelNumber++) {
-        travel = data["connections"][travelNumber]
-        journey = travel["sections"][0]["journey"]
-        let number = ""
-        let timeFrom = (new Date(travel["from"]["departure"]).toLocaleTimeString('fr-CH', {hour: '2-digit', minute: '2-digit'}));
-        let timeTo = (new Date(travel["to"]["arrival"]).toLocaleTimeString('fr-CH', {hour: '2-digit', minute: '2-digit'}));
-        let timeTravel = travel["duration"].split('d')[1].split(':')
-        let newtimeTravel = ""
-        let platform = ""
-        
-        if (journey["category"] != "RE" || journey["category"] != "EC") {
-            number = ` ${journey["number"]}`
-        }
+    let info = {}
 
-        if (travel["from"]["platform"] != null){
-            platform = `platform ${travel["from"]["platform"]}`
-        }
+    for (pageNumber in data["connections"]){
 
-        if (timeTravel[0] >= 1){
-            if (timeTravel[0].startsWith('0')) {
-                newtimeTravel += `${timeTravel[0].slice(1)} h `
+        console.log(pageNumber)
+
+        let size = 96
+        let text = getHeader(data, size, userID, filePath, "null")
+
+        let timeFrom
+        let timeTo
+
+        let depart = []
+
+        for (let travelNumber = 0; travelNumber < Object.keys(data["connections"][pageNumber]).length; travelNumber++) {
+            travel = data["connections"][pageNumber][travelNumber]
+            journey = travel["sections"][0]["journey"]
+            timeFrom = (new Date(travel["from"]["departure"]).toLocaleTimeString('fr-CH', {hour: '2-digit', minute: '2-digit'}));
+            timeTo = (new Date(travel["to"]["arrival"]).toLocaleTimeString('fr-CH', {hour: '2-digit', minute: '2-digit'}));
+
+            let number = ""
+            let timeTravel = travel["duration"].split('d')[1].split(':')
+            let newtimeTravel = ""
+            let platform = ""
+            
+            if(journey != null){
+                if (journey["category"] != "RE" || journey["category"] != "EC") {
+                    number = ` ${journey["number"]}`
+                }
+                text += (`   ${journey["category"]}${number} Direction ${journey["to"]}\n`)
+            }
+
+
+            if (travel["from"]["platform"] != null){
+                platform = `platform ${travel["from"]["platform"]}`
+            }
+
+            if (timeTravel[0] >= 1){
+                if (timeTravel[0].startsWith('0')) {
+                    newtimeTravel += `${timeTravel[0].slice(1)} h `
+                }
+                else{
+                    newtimeTravel += `${timeTravel[0]} h `
+                }
+            }
+
+            if (timeTravel[1].startsWith('0')) {
+                newtimeTravel += `${timeTravel[1].slice(1)} min `
             }
             else{
-                newtimeTravel += `${timeTravel[0]} h `
+                newtimeTravel += `${timeTravel[1]} min `
             }
+            
+            
+            text += (`   ${timeFrom} ${"-".repeat(size - 22)} ${timeTo}\n`)
+            text += (`   ${platform}${" ".repeat(size - 17 - newtimeTravel.length - platform.length)} ${newtimeTravel}\n\n`)
+
+            depart.push(timeFrom)
+
         }
 
-        if (timeTravel[1].startsWith('0')) {
-            newtimeTravel += `${timeTravel[1].slice(1)} min `
-        }
-        else{
-            newtimeTravel += `${timeTravel[1]} min `
-        }
-        
-        text += (`   ${journey["category"]}${number} Direction ${journey["to"]}\n`)
-        text += (`   ${timeFrom} ${"-".repeat(size - 22)} ${timeTo}\n`)
-        text += (`   ${platform}${" ".repeat(size - 17 - newtimeTravel.length - platform.length)} ${newtimeTravel}\n\n`)
+        info[pageNumber] = [text, depart]
 
-        
     }
 
-    return text
+    return info
     
 }
 
