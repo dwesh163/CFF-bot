@@ -87,13 +87,23 @@ async function telegram() {
   bot.command("start", async (ctx) => {
 
     if (verifyAccount(ctx) == -2) {
-      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["accesSend"]);
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["startVerify"]);
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["accessSend"]);
     }
     if (verifyAccount(ctx) == -3) {
+      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["startVerify"]);
       ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["accessDenied"]);
     }
     if (verifyAccount(ctx) == 0) {
-      ctx.reply(`${textResponse[process.env.LANGUAGE]["startVerify"]}\n\n\n${textResponse[process.env.LANGUAGE]["start"]}`);
+      try{
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["startVerify"]);
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["start"]);
+      }
+      catch{
+        ctx.reply(textResponse[process.env.LANGUAGE]["startVerify"]);
+        ctx.reply(textResponse[process.env.LANGUAGE]["start"]);
+      }
+      
       JSONObject = JSON.parse(fs.readFileSync(filePath));
       JSONObject[ctx.message.from.id] = { admin: -1 };
       JSONObject[ctx.message.from.id]["chatID"] = ctx.chat.id;
@@ -114,6 +124,7 @@ async function telegram() {
       numberID += 1;
     }
     if (verifyAccount(ctx) > 1) {
+      console.log(1)
       ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["startVerify"]);
     }
   });
@@ -303,6 +314,10 @@ async function telegram() {
     catch{
       ctx.reply(textResponse[process.env.LANGUAGE]["help"]);
     }
+  })
+
+  bot.command("language", async (ctx) => {
+    
   })
 
   bot.launch();
