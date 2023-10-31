@@ -32,7 +32,7 @@ module.exports = function () {
     }
   }
 
-  function askPermission(ctx, data, numberID) {
+  this.askPermission =  function(ctx, data, numberID) {
     for (var userID in data) {
       if (data[userID]["admin"] == 3) {
         bot.telegram.sendMessage(
