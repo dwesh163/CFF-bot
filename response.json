@@ -1,5 +1,6 @@
 {
     "en": {
+        "name": "English",
         "help": "help",
         "startVerify": "Hello i'm a bot...",
         "accessSend": "Don't panic access has just been requested and you'll have the answer in a few hours",
@@ -19,6 +20,7 @@
         "languageValidate" : "your language has been changed for UIX678"
     },
     "fr" : {
+        "name": "Français",
         "help" : "help",
         "startVerify" : "Hello i'm a bot...",
         "accessSend" : "Pas de panique, l'accès vient d'être demandé et vous aurez la réponse dans quelques heures.",
@@ -38,6 +40,7 @@
         "languageValidate" : "votre langue a été modifiée pour UIX678"
     },
     "de": {
+        "name": "Deutsche",
         "help": "Hilfe",
         "startVerify": "Hello i'm a bot...",
         "accessSend": "Keine Panik, der Zugang wurde soeben beantragt und Sie werden die Antwort in ein paar Stunden erhalten",

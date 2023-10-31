@@ -17,7 +17,7 @@ const adminID = process.env.ADMIN_ID;
 
 const textResponse = JSON.parse(fs.readFileSync("./response.json"))
 
-//bot.telegram.sendMessage(adminID, "Hello you have been defined as main administrator, to validate this choice run the command /admin")
+bot.telegram.sendMessage(adminID, "Hello you have been defined as main administrator, to validate this choice run the command /admin")
 
 let JSONObject = {};
 JSONObject[adminID] = { admin: 3 };
@@ -243,7 +243,7 @@ async function telegram() {
         }
         const messageSent = await ctx.reply("wait...")
 
-        await editTelegramMessage(ctx, from, "work", messageSent, ctx.message.from.id ,filePath, 0)
+        await editTelegramMessage(ctx, from, "home", messageSent, ctx.message.from.id ,filePath, 0)
 
       } else {
         ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["setAutoEmpty"].replace("UIX345", "home"));
@@ -324,34 +324,45 @@ async function telegram() {
       let buttonLanguageList = []
 
       for (language in textResponse) {
-        buttonLanguageList.push({ text: language, callback_data: "1" })
-      
+        buttonLanguageList.push({ text: textResponse[language]["name"], callback_data: language})
       }
 
       ctx.reply(replyText, {
         reply_markup: {
             inline_keyboard: [
                 buttonLanguageList
-                
             ],
         }})
 
+      let data = []
+
       bot.action("en", (ctx) => {
+        console.log("en")
         data = JSON.parse(fs.readFileSync(filePath))
         data[userId]["language"] = "en"
+
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        console.log(textResponse[data[userId]["language"]]["name"])
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[userId]["language"]]["languageValidate"].replace("UIX678",textResponse[data[userId]["language"]]["name"]))
+
       });
-      bot.action("1", (ctx) => {
+      bot.action("fr", (ctx) => {
         data = JSON.parse(fs.readFileSync(filePath))
         data[userId]["language"] = "fr"
+
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[userId]["language"]]["languageValidate"].replace("UIX678",textResponse[data[userId]["language"]]["name"]))
+
       });
       bot.action("de", (ctx) => {
         data = JSON.parse(fs.readFileSync(filePath))
         data[userId]["language"] = "de"
+
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
+        ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[userId]["language"]]["languageValidate"].replace("UIX678",textResponse[data[userId]["language"]]["name"]))
       });
 
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 3));
 
-      ctx.reply(textResponse[JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]]["languageValidate"].replace("UIX678",JSON.parse(fs.readFileSync(filePath))[ctx.message.from.id]["language"]))
 
     }
     catch{
